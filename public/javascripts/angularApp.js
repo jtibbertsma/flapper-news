@@ -18,12 +18,18 @@ app.config(['$stateProvider', '$urlRouterProvider',
   }
 ]);
 
-app.factory('posts', [function () {
-  return {
-    posts: [
-      { title: "post 1", upvotes: 0, comments: [] }
-    ]
-  }
+app.factory('posts', ['$http', function ($http) {
+  var o = {
+    posts: []
+  };
+
+  o.getAll = function () {
+    return $http.get('/posts').success(function (data) {
+      angular.copy(data, o.posts);
+    });
+  };
+
+  return o;
 }]);
 
 app.controller('PostsCtrl', ['$scope', '$stateParams', 'posts',
