@@ -9,7 +9,7 @@ app.config(['$stateProvider', '$urlRouterProvider',
         controller: "MainCtrl",
         resolve: {
           postPromise: ['posts', function (posts) {
-            return post.getAll();
+            return posts.getAll();
           }]
         }
       })
@@ -32,6 +32,19 @@ app.factory('posts', ['$http', function ($http) {
     return $http.get('/posts').success(function (data) {
       angular.copy(data, o.posts);
     });
+  };
+
+  o.create = function (post) {
+    return $http.post('/posts').success(function (data) {
+      o.posts.push(data);
+    });
+  };
+
+  o.upvote = function (post) {
+    return $http.put('/posts/' + post._id + '/upvote')
+      .success(function (data) {
+        post.upvotes += 1;
+      });
   };
 
   return o;
@@ -69,11 +82,9 @@ app.controller('MainCtrl', ['$scope', 'posts',
         return;
       }
 
-      $scope.posts.push({ title: $scope.title, upvotes: 0, link: $scope.link,
-        comments: [
-          { author: 'Joe', body: 'Cool post!', upvotes: 0 },
-          { author: 'Bob', body: 'Great idea but everything is wrong!', upvotes: 0 }
-        ]
+      posts.create({
+        title: $scope.title,
+        link: $scope.link
       });
 
       $scope.title = '';
@@ -81,7 +92,7 @@ app.controller('MainCtrl', ['$scope', 'posts',
     };
 
     $scope.incrementUpvotes = function (post) {
-      post.upvotes += 1;
+      posts.upvote(post);
     }
   }]
 );
