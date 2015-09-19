@@ -16,7 +16,12 @@ app.config(['$stateProvider', '$urlRouterProvider',
       .state('posts', {
         url: "/posts/{id}",
         templateUrl: "templates/posts.html",
-        controller: "PostsCtrl"
+        controller: "PostsCtrl",
+        resolve: {
+          post: ['$stateParams', 'posts', function ($stateParams, posts) {
+            return posts.get($stateParams.id);
+          }]
+        }
       });
 
     $urlRouterProvider.otherwise("home");
@@ -35,7 +40,7 @@ app.factory('posts', ['$http', function ($http) {
   };
 
   o.create = function (post) {
-    return $http.post('/posts').success(function (data) {
+    return $http.post('/posts', post).success(function (data) {
       o.posts.push(data);
     });
   };
@@ -47,12 +52,18 @@ app.factory('posts', ['$http', function ($http) {
       });
   };
 
+  o.get = function (id) {
+    return $http.get('/posts/' + id).then(function (res) {
+      return res.data;
+    });
+  };
+
   return o;
 }]);
 
-app.controller('PostsCtrl', ['$scope', '$stateParams', 'posts',
-  function ($scope, $stateParams, posts) {
-    $scope.post = posts.posts[$stateParams.id];
+app.controller('PostsCtrl', ['$scope', 'posts', 'post',
+  function ($scope, posts, post) {
+    $scope.post = post;
 
     $scope.addComment = function () {
       if ($scope.body === "") {
